@@ -1,16 +1,21 @@
+import os
+import urllib.request
+
+def download_model():
+    url = "https://drive.usercontent.google.com/download?id=1aLAw5xQIzexaRGCrfuSEUDt8Di2r7O3E&confirm=t"
+    urllib.request.urlretrieve(url, 'best.pt')
+    # Verify it downloaded correctly
+    size = os.path.getsize('best.pt')
+    if size < 1000000:  # less than 1MB means it got HTML not the model
+        os.remove('best.pt')
+        raise Exception(f"Download failed - got {size} bytes instead of model file")
+
+if not os.path.exists('best.pt'):
+    download_model()
+
 import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
-import numpy as np
-import urllib.request
-import os
-
-if not os.path.exists('best.pt'):
-    print("Downloading model...")
-    urllib.request.urlretrieve(
-        'https://drive.google.com/file/d/1aLAw5xQIzexaRGCrfuSEUDt8Di2r7O3E/view?usp=sharing',
-        'best.pt'
-    )
 
 st.set_page_config(
     page_title="Weld Defect Detection",
