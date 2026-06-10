@@ -1,6 +1,7 @@
+<<<<<<< HEAD
 # 🔧 Weld Defect Detection System
 
-[![Python](https://img.shields.io/badge/python-3.11-blue)]()
+[![Python](https://img.shields.io/badge/python-3.14.5-blue)]()
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-red)]()
 [![Streamlit](https://img.shields.io/badge/Streamlit-Live-green)]()
 
@@ -48,3 +49,6 @@ weld-defect-detection/
 ## 📧 Contact
 - LinkedIn: https://linkedin.com/in/smritymallik
 - GitHub: https://github.com/malliksmrity
+=======
+# weld-defect-detection
+>>>>>>> a5362ff (Initial commit)
