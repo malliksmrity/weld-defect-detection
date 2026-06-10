@@ -18,7 +18,7 @@ Detects porosity, cracks, undercut, and spatter in weld seam images in real time
 | Dataset | 6,335 training images |
 
 ## 🔗 Live Demo
-[Streamlit App](YOUR_LINK_HERE)
+[Streamlit App](https://weld-defect-detection-xyeclcnf3j3vmh2vjezujx.streamlit.app/)
 
 ## 🏭 Use Case
 Replaces manual visual inspection on welding production lines.
