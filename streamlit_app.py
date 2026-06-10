@@ -2,6 +2,15 @@ import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
 import numpy as np
+import urllib.request
+import os
+
+if not os.path.exists('best.pt'):
+    print("Downloading model...")
+    urllib.request.urlretrieve(
+        'https://drive.google.com/file/d/1aLAw5xQIzexaRGCrfuSEUDt8Di2r7O3E/view?usp=sharing',
+        'best.pt'
+    )
 
 st.set_page_config(
     page_title="Weld Defect Detection",
