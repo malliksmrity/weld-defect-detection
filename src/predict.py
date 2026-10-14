@@ -6,7 +6,7 @@ from ultralytics import YOLO
 from PIL import Image
 from typing import List, Dict
 
-def load_model(model_path: str = 'best.pt') -> YOLO:
+def load_model(model_path: str = 'models/best.pt') -> YOLO:
     """Load trained YOLOv8 model."""
     return YOLO(model_path)
 
