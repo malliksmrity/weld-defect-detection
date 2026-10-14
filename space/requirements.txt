@@ -1,0 +1,3 @@
+gradio
+ultralytics==8.4.177
+opencv-python-headless
