@@ -81,3 +81,7 @@ GitHub: github.com/malliksmrity. LinkedIn: linkedin.com/in/smritymallik.
 
 - `PROCESS.md`: backlog, definition of done and sprint rhythm for the next work (a plan, not past experience).
 - `.github/workflows/ci.yml`: GitHub Actions check (written here, not yet run on GitHub).
+
+## Live model UI (Hugging Face Space)
+
+`space/` is a ready-to-deploy Gradio app for a Hugging Face Space. Instructions in `space/README.md`. Not deployed yet: it needs your Hugging Face account.
