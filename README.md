@@ -14,7 +14,7 @@ Quality inspectors in manufacturing could use a model like this as a second pair
 
 ## Data and licence
 
-- Training data: a labelled weld-image set with six classes. **The source, licence and size of the dataset are not recorded in this repository.** To be added by the author.
+- Training data: a labelled weld-image set with six classes, downloaded in YOLOv8 format from a Roboflow project named "Weld-Defect" (version 1, about 0.8 GB zip), according to the Kaggle notebook log. Trained on a Kaggle T4 GPU in about 41 minutes: https://www.kaggle.com/code/smritymallik/weld-defect-project. **The Roboflow dataset's original author and licence still need to be looked up and added here.**
 - Model: Ultralytics YOLOv8, which is licensed under AGPL-3.0. Check what this means before any commercial use.
 - Weights: `models/best.pt` (6 MB) is not stored in git. Get it with `python scripts/download_weights.py` (author's Google Drive link) or copy your own file there.
 
