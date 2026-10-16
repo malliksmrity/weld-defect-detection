@@ -4,23 +4,23 @@ import numpy as np
 from PIL import Image
 from src.predict import load_model, predict_defects
 
-def test_model_loads():
+def test_model_loads(weights_path):
     """Model loads without error."""
-    model = load_model('best.pt')
+    model = load_model(weights_path)
     assert model is not None
 
-def test_predict_returns_list():
+def test_predict_returns_list(weights_path):
     """Prediction returns a list."""
-    model = load_model('best.pt')
+    model = load_model(weights_path)
     dummy = Image.fromarray(
         np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
     )
     result = predict_defects(model, dummy)
     assert isinstance(result, list)
 
-def test_detection_keys():
+def test_detection_keys(weights_path):
     """Each detection has required keys."""
-    model = load_model('best.pt')
+    model = load_model(weights_path)
     dummy = Image.fromarray(
         np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
     )

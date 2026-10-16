@@ -1,5 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+.vscode/
+# model weights are large; see README for where to get best.pt
 *.pt
 *.onnx
 runs/
-__pycache__/
-.DS_Store
+!docs/model/*.onnx
