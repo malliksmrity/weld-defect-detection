@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weld defect detection | Try the model in your browser</title>
+<meta name="description" content="A small object-detection model looks for weld defects in a photo. It runs in your browser, so the picture never leaves your device.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar"><span>Smrity Mallik &middot; Project page</span><a href="https://github.com/malliksmrity/weld-defect-detection">Code on GitHub</a></div>
+
+  <p class="kicker">Quality inspection &middot; welding &middot; computer vision</p>
+  <h1>Upload a photo of a weld and a small model marks what it thinks are defects</h1>
+  <p class="lead">The model was trained to find six things: bad welding, cracks, good welding, porosity (gas bubbles), reinforcement (excess weld metal) and spatter. It runs in your browser. The photo is not uploaded anywhere.</p>
+  <p class="note">This is a demonstration of a student model. It is not a certified inspection tool, and its accuracy has not been measured on a proper test set (see Limits).</p>
+
+  <noscript><p class="callout">The demo needs JavaScript.</p></noscript>
+
+  <h2>Try it</h2>
+  <div class="demo">
+    <p><label class="file"><input id="file" type="file" accept="image/*"><span>Choose a weld photo</span></label>
+       <span id="status" class="note" role="status" style="margin-left:8px">Model loading&hellip;</span></p>
+    <p><label for="conf">Minimum confidence: <b id="confv">25</b> %</label><br>
+       <input id="conf" type="range" min="10" max="90" value="25" style="width:100%;max-width:360px"></p>
+    <canvas id="view" width="416" height="416" role="img" aria-label="The photo with boxes around detected defects"></canvas>
+    <ul id="out" class="plain"></ul>
+  </div>
+
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li>A YOLOv8 object-detection network was trained on labelled weld photos to draw boxes around six kinds of regions.</li>
+    <li>The trained network was exported to the ONNX format (12 MB), which a browser can run with WebAssembly.</li>
+    <li>Your photo is resized to 416 by 416 pixels, the network proposes boxes, and overlapping boxes are merged.</li>
+  </ol>
+
+  <h2>Limits</h2>
+  <ul class="plain">
+    <li>The earlier README quoted mAP50 0.67, 15 ms per image and 6,335 training images. The training logs and dataset are not in this repository, so those figures can not be reproduced here and are not repeated on this page.</li>
+    <li>Only two photos were tried during this cleanup: a good weld was labelled &ldquo;Good Welding&rdquo; (confidence 0.86), a badly welded rusty corner got several &ldquo;Bad Welding&rdquo; boxes with confidence up to 0.58. Two photos prove nothing about accuracy.</li>
+    <li>The old Streamlit app only reported detections above 0.75 confidence. For the bad-weld photo above that would have shown nothing.</li>
+    <li>The class list has six entries. The earlier README named four types (porosity, cracks, undercut, spatter). The model has no &ldquo;undercut&rdquo; class.</li>
+    <li>Photos that look unlike the training data (lighting, metal, camera angle) will work worse.</li>
+  </ul>
+
+  <footer>
+    Model: Ultralytics YOLOv8 (AGPL-3.0 licence), trained by the author. Training data source: to be added by the author (not recorded in the repository).
+    Browser runtime: ONNX Runtime Web (MIT).
+    Code and notes: <a href="https://github.com/malliksmrity/weld-defect-detection">github.com/malliksmrity/weld-defect-detection</a>. Personal project. Last checked October 2026.
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
+<script>
+(function () {
+  var NAMES = ['Bad Welding', 'Crack', 'Good Welding', 'Porosity', 'Reinforcement', 'Spatter'];
+  var SIZE = 416, session = null, lastImg = null;
+  var statusEl = document.getElementById('status'), canvas = document.getElementById('view'), ctx = canvas.getContext('2d');
+  var css = getComputedStyle(document.documentElement), accent = css.getPropertyValue('--accent').trim();
+
+  ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
+  ort.env.wasm.numThreads = 1;
+  ort.InferenceSession.create('model/weld_yolov8.onnx', { executionProviders: ['wasm'] }).then(function (s) {
+    session = s; statusEl.textContent = 'Model ready. Choose a photo.';
+    if (lastImg) run(lastImg);
+  }).catch(function (e) { statusEl.textContent = 'The model could not be loaded in this browser.'; });
+
+  function iou(a, b) {
+    var x1 = Math.max(a.x1, b.x1), y1 = Math.max(a.y1, b.y1), x2 = Math.min(a.x2, b.x2), y2 = Math.min(a.y2, b.y2);
+    var inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+    return inter / ((a.x2 - a.x1) * (a.y2 - a.y1) + (b.x2 - b.x1) * (b.y2 - b.y1) - inter + 1e-9);
+  }
+
+  async function run(img) {
+    lastImg = img;
+    var scale = Math.min(SIZE / img.width, SIZE / img.height), w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+    var dx = Math.floor((SIZE - w) / 2), dy = Math.floor((SIZE - h) / 2);
+    ctx.fillStyle = 'rgb(114,114,114)'; ctx.fillRect(0, 0, SIZE, SIZE); ctx.drawImage(img, dx, dy, w, h);
+    if (!session) { return []; }
+    var px = ctx.getImageData(0, 0, SIZE, SIZE).data, n = SIZE * SIZE, data = new Float32Array(3 * n);
+    for (var i = 0; i < n; i++) { data[i] = px[i * 4] / 255; data[n + i] = px[i * 4 + 1] / 255; data[2 * n + i] = px[i * 4 + 2] / 255; }
+    var out = await session.run({ images: new ort.Tensor('float32', data, [1, 3, SIZE, SIZE]) });
+    var o = out[Object.keys(out)[0]], d = o.data, cols = o.dims[2], nc = o.dims[1] - 4, boxes = [];
+    var minConf = +document.getElementById('conf').value / 100;
+    for (var j = 0; j < cols; j++) {
+      var best = 0, cls = 0;
+      for (var c = 0; c < nc; c++) { var s = d[(4 + c) * cols + j]; if (s > best) { best = s; cls = c; } }
+      if (best < minConf) continue;
+      var cx = d[j], cy = d[cols + j], bw = d[2 * cols + j], bh = d[3 * cols + j];
+      boxes.push({ x1: cx - bw / 2, y1: cy - bh / 2, x2: cx + bw / 2, y2: cy + bh / 2, score: best, cls: cls });
+    }
+    boxes.sort(function (a, b) { return b.score - a.score; });
+    var keep = [];
+    boxes.forEach(function (b) { if (keep.every(function (k) { return k.cls !== b.cls || iou(k, b) < 0.5; })) keep.push(b); });
+    ctx.lineWidth = 2; ctx.font = '13px "Segoe UI", sans-serif';
+    var list = document.getElementById('out'); list.innerHTML = '';
+    keep.forEach(function (b) {
+      ctx.strokeStyle = accent; ctx.strokeRect(b.x1, b.y1, b.x2 - b.x1, b.y2 - b.y1);
+      var label = NAMES[b.cls] + ' ' + Math.round(b.score * 100) + '%', tw = ctx.measureText(label).width + 6;
+      ctx.fillStyle = accent; ctx.fillRect(b.x1, Math.max(0, b.y1 - 16), tw, 16); ctx.fillStyle = '#fff'; ctx.fillText(label, b.x1 + 3, Math.max(12, b.y1 - 4));
+      var li = document.createElement('li'); li.textContent = NAMES[b.cls] + ', confidence ' + Math.round(b.score * 100) + ' %'; list.appendChild(li);
+    });
+    if (!keep.length) { var li0 = document.createElement('li'); li0.textContent = 'Nothing found at this confidence. That does not prove the weld is fine.'; list.appendChild(li0); }
+    return keep;
+  }
+  window.runDetect = run;
+
+  document.getElementById('file').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var img = new Image(); img.onload = function () { run(img); URL.revokeObjectURL(img.src); }; img.src = URL.createObjectURL(f);
+  });
+  document.getElementById('conf').addEventListener('input', function (e) {
+    document.getElementById('confv').textContent = e.target.value; if (lastImg) run(lastImg);
+  });
+})();
+</script>
+</body>
+</html>
